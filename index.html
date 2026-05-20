@@ -1105,3 +1105,284 @@
       <span class="bow-fade" id="bow-fade">— 礼 —</span>
     </div>
   </div>
+
+
+
+<script>
+  // reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('in');
+    });
+  }, { threshold: 0.4, rootMargin: '0px 0px -10% 0px' });
+  reveals.forEach(el => io.observe(el));
+
+  // 章ラベル墨滴 trigger (revealと別で確実に処理)
+  document.querySelectorAll('.chapter-label').forEach(el => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) el.classList.add('in');
+      });
+    }, { threshold: 0.5 });
+    observer.observe(el);
+  });
+
+  // タイトル
+  const titleStage = document.getElementById('title-stage');
+  const titleSide1 = document.getElementById('title-side-1');
+  const titleSide2 = document.getElementById('title-side-2');
+  const titleMain = document.getElementById('title-main');
+  const frame = document.getElementById('frame');
+
+  function updateTitle() {
+    const rect = titleStage.getBoundingClientRect();
+    const winH = window.innerHeight;
+    const totalH = titleStage.offsetHeight;
+    const entered = -rect.top;
+    const progress = Math.max(0, Math.min(1, entered / (totalH - winH)));
+
+    if (progress < 0.05) {
+      titleSide1.style.opacity = '1';
+      titleSide2.style.opacity = '1';
+      titleMain.style.transform = '';
+      titleMain.style.opacity = '1';
+      frame.classList.remove('appear');
+    } else {
+      const p = (progress - 0.05) / 0.95;
+      const opacitySide = Math.max(0, 1 - p * 2);
+      titleSide1.style.opacity = opacitySide.toFixed(2);
+      titleSide2.style.opacity = opacitySide.toFixed(2);
+
+      const winW = window.innerWidth;
+      const moveX = -winW * 0.4 * p;
+      const moveY = -winH * 0.38 * p;
+      const scaleMain = 1 - 0.7 * p;
+      const opacityMain = Math.max(0, 1 - p * 1.3);
+      titleMain.style.transform = `translate(${moveX}px, ${moveY}px) scale(${scaleMain})`;
+      titleMain.style.opacity = opacityMain.toFixed(2);
+
+      if (p > 0.7) frame.classList.add('appear');
+      else frame.classList.remove('appear');
+    }
+  }
+  window.addEventListener('scroll', updateTitle, { passive: true });
+  updateTitle();
+
+  // 人字
+  const hitoBg = document.getElementById('hito-bg');
+  const hito = document.getElementById('hito');
+  const hitoCaption = document.getElementById('hito-caption');
+
+  const showSection = document.getElementById('hito-show-section');
+  const showIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        hitoBg.classList.add('visible');
+        hitoCaption.classList.add('visible');
+        setTimeout(() => hito.classList.add('drawn'), 200);
+      }
+    });
+  }, { threshold: 0.3 });
+  showIO.observe(showSection);
+
+  const capSections = document.querySelectorAll('[data-caption]');
+  const capIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const newCap = entry.target.dataset.caption;
+        if (newCap === '') {
+          hitoCaption.classList.remove('visible');
+          hitoCaption.classList.add('hidden');
+        } else if (hitoCaption.textContent !== newCap) {
+          hitoCaption.style.opacity = '0';
+          setTimeout(() => {
+            hitoCaption.textContent = newCap;
+            hitoCaption.classList.remove('hidden');
+            hitoCaption.classList.add('visible');
+            hitoCaption.style.opacity = '';
+          }, 400);
+        }
+      }
+    });
+  }, { threshold: 0.5 });
+  capSections.forEach(s => capIO.observe(s));
+
+  const leftFadeSection = document.getElementById('hito-left-fade-section');
+  const leftFadeIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) hito.classList.add('left-faded');
+    });
+  }, { threshold: 0.4 });
+  leftFadeIO.observe(leftFadeSection);
+
+  const fallSection = document.getElementById('hito-fall-section');
+  const fallIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) hito.classList.add('fall-horizontal');
+    });
+  }, { threshold: 0.4 });
+  fallIO.observe(fallSection);
+
+  const disappearSection = document.getElementById('hito-disappear-section');
+  const disappearIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        hito.classList.add('fall-vanish');
+        setTimeout(() => hitoBg.classList.add('gone'), 1000);
+      }
+    });
+  }, { threshold: 0.3 });
+  disappearIO.observe(disappearSection);
+
+  // 安全圏
+  const anzenEl = document.getElementById('anzen-fixed');
+  const anzenShowSection = document.getElementById('anzen-show-section');
+  const anzenShowIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        anzenEl.classList.add('visible');
+        anzenEl.classList.remove('fading');
+      }
+    });
+  }, { threshold: 0.4 });
+  anzenShowIO.observe(anzenShowSection);
+
+  const anzenFadeSection = document.getElementById('anzen-fade-section');
+  const anzenFadeIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        anzenEl.classList.add('fading');
+        setTimeout(() => anzenEl.classList.remove('visible'), 1400);
+      }
+    });
+  }, { threshold: 0.4 });
+  anzenFadeIO.observe(anzenFadeSection);
+
+  // 写真コラージュ
+  const collageSection = document.getElementById('collage-section');
+  const photos = document.querySelectorAll('.photo');
+  let collageStarted = false;
+  const collageIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !collageStarted) {
+        collageStarted = true;
+        photos.forEach((p, i) => {
+          setTimeout(() => p.classList.add('show'), i * 220);
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+  collageIO.observe(collageSection);
+
+  // 大型1枚
+  const heroPhoto = document.getElementById('hero-photo');
+  const heroIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) heroPhoto.classList.add('in');
+    });
+  }, { threshold: 0.3 });
+  heroIO.observe(document.getElementById('hero-photo-section'));
+
+  // 依存先分散図
+  const depsStage = document.getElementById('deps-stage');
+  const depsSelf = document.getElementById('deps-self');
+  const depNodes = [1,2,3,4,5,6,7,8].map(n => ({
+    node: document.getElementById(`dep-${n}`),
+    line: document.getElementById(`line-${n}`)
+  }));
+
+  let depsStarted = false;
+  const depsIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !depsStarted) {
+        depsStarted = true;
+        setTimeout(() => depsSelf.classList.add('in'), 200);
+        depNodes.forEach((dep, i) => {
+          setTimeout(() => {
+            dep.node.classList.add('lit');
+            dep.line.classList.add('lit');
+          }, 900 + i * 420);
+        });
+      }
+    });
+  }, { threshold: 0.4 });
+  depsIO.observe(depsStage);
+
+  // bow-fade
+  const fakeAnchor = document.getElementById('fake-end-anchor');
+  const bowFade = document.getElementById('bow-fade');
+  window.addEventListener('scroll', () => {
+    const rect = fakeAnchor.getBoundingClientRect();
+    const winH = window.innerHeight;
+    const totalH = fakeAnchor.offsetHeight;
+    const entered = -rect.top;
+    const progress = Math.max(0, Math.min(1, entered / (totalH - winH)));
+    if (progress > 0 && progress < 1) {
+      bowFade.style.opacity = Math.max(0, 1 - progress * 1.8).toFixed(2);
+    }
+  }, { passive: true });
+
+  // グリッチ
+  const transitionEl = document.getElementById('transition');
+  let glitchFired = false;
+  const transIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !glitchFired) {
+        glitchFired = true;
+        document.body.classList.add('glitching');
+        setTimeout(() => {
+          document.body.classList.add('inverted');
+          document.body.classList.remove('glitching');
+        }, 1200);
+      }
+    });
+  }, { threshold: 0.4 });
+  transIO.observe(transitionEl);
+
+  // エンディング
+  const endingBar = document.getElementById('ending-bar');
+
+  const rebuildShowSection = document.getElementById('rebuild-show-section');
+  const rebuildShowIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) endingBar.classList.add('visible');
+    });
+  }, { threshold: 0.4 });
+  rebuildShowIO.observe(rebuildShowSection);
+
+  const rebuildStandSection = document.getElementById('rebuild-stand-section');
+  const rebuildStandIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        endingBar.classList.add('standing');
+        setTimeout(() => {
+          endingBar.classList.remove('standing');
+          endingBar.classList.add('standing-done');
+        }, 2000);
+      }
+    });
+  }, { threshold: 0.4 });
+  rebuildStandSection && rebuildStandIO.observe(rebuildStandSection);
+
+  const rebuildWalkSection = document.getElementById('rebuild-walk-section');
+  const rebuildWalkIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) endingBar.classList.add('walking-left');
+    });
+  }, { threshold: 0.4 });
+  rebuildWalkSection && rebuildWalkIO.observe(rebuildWalkSection);
+
+  const tbcSection = document.getElementById('tbc-section');
+  const tbcImageWrap = document.getElementById('tbc-image-wrap');
+  const tbcIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        setTimeout(() => tbcImageWrap.classList.add('in'), 400);
+      }
+    });
+  }, { threshold: 0.4 });
+  tbcIO.observe(tbcSection);
+</script>
+</body>
+</html>
