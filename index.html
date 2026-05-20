@@ -849,42 +849,24 @@
     font-weight: 600;
   }
 
-  /* === 話者紹介 === */
-  .speaker-intro {
-    text-align: center;
+  /* === ダミー版 終了画面 === */
+  .dummy-end {
+    min-height: 100vh;
   }
-  .speaker-team {
+  .dummy-fin {
     font-family: 'Shippori Mincho B1', serif;
-    font-size: clamp(0.85rem, 1.6vw, 1.1rem);
-    letter-spacing: 0.45em;
-    color: var(--accent);
-    margin-bottom: 2rem;
+    font-size: clamp(2.5rem, 6vw, 4rem);
     font-weight: 400;
-  }
-  .speaker-team .team-mark {
-    display: inline-block;
-    width: clamp(28px, 3.5vw, 42px);
-    height: 1px;
-    background: var(--accent);
-    margin: 0 1.2em;
-    vertical-align: middle;
-    opacity: 0.6;
-  }
-  .speaker-name {
-    font-family: 'Shippori Mincho B1', serif;
-    font-size: clamp(1.8rem, 4.2vw, 2.8rem);
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    color: var(--fg);
-    line-height: 1.4;
-    margin-bottom: 0.6rem;
-  }
-  .speaker-name-sub {
-    font-family: 'Shippori Mincho B1', serif;
-    font-size: clamp(0.9rem, 1.7vw, 1.15rem);
-    letter-spacing: 0.25em;
     color: var(--muted);
-    font-weight: 400;
+    letter-spacing: 0.5em;
+    opacity: 0;
+    transition: opacity 4s ease 1.5s, color 1.4s ease;
+  }
+  .dummy-fin.in { opacity: 0.5; }
+
+  /* ダミー版: 「俺の話」は表示しない */
+  body.inverted .fake-end-after {
+    display: none !important;
   }
 </style>
 </head>
@@ -922,15 +904,6 @@
       </div>
     </div>
   </div>
-
-  <!-- 話者紹介 -->
-  <section class="part1">
-    <div class="container speaker-intro">
-      <p class="speaker-team reveal"><span class="team-mark"></span>G チ ー ム<span class="team-mark"></span></p>
-      <p class="speaker-name reveal">か に ち</p>
-      <p class="speaker-name-sub reveal">岡 田 勘 一</p>
-    </div>
-  </section>
 
   <!-- 序 -->
   <section class="part1" id="cover-section">
@@ -1100,12 +1073,20 @@
     <div class="fake-end-sticky" id="fake-end-sticky">
       <div class="fake-end-text-wrap">
         <span class="fake-end-text" id="fake-end-text" data-text="ご清聴、ありがとうございました!">ご清聴、ありがとうございました!</span>
-        <span class="fake-end-after" data-text=""></span>
+        <span class="fake-end-after" data-text="……ここからは、編集されない「俺」の話">……ここからは、編集されない「俺」の話</span>
       </div>
       <span class="bow-fade" id="bow-fade">— 礼 —</span>
     </div>
   </div>
 
+  <section id="transition" style="min-height:10vh;"></section>
+
+  <!-- ダミー版: グリッチ後の余韻 -->
+  <section class="part2 dummy-end">
+    <div class="container">
+      <p class="dummy-fin" id="dummy-fin">終</p>
+    </div>
+  </section>
 
 
 <script>
@@ -1340,49 +1321,14 @@
   }, { threshold: 0.4 });
   transIO.observe(transitionEl);
 
-  // エンディング
-  const endingBar = document.getElementById('ending-bar');
-
-  const rebuildShowSection = document.getElementById('rebuild-show-section');
-  const rebuildShowIO = new IntersectionObserver((entries) => {
+  // ダミー版: 「終」表示
+  const dummyFin = document.getElementById('dummy-fin');
+  const dummyFinIO = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) endingBar.classList.add('visible');
+      if (entry.isIntersecting) dummyFin.classList.add('in');
     });
   }, { threshold: 0.4 });
-  rebuildShowIO.observe(rebuildShowSection);
-
-  const rebuildStandSection = document.getElementById('rebuild-stand-section');
-  const rebuildStandIO = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        endingBar.classList.add('standing');
-        setTimeout(() => {
-          endingBar.classList.remove('standing');
-          endingBar.classList.add('standing-done');
-        }, 2000);
-      }
-    });
-  }, { threshold: 0.4 });
-  rebuildStandSection && rebuildStandIO.observe(rebuildStandSection);
-
-  const rebuildWalkSection = document.getElementById('rebuild-walk-section');
-  const rebuildWalkIO = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) endingBar.classList.add('walking-left');
-    });
-  }, { threshold: 0.4 });
-  rebuildWalkSection && rebuildWalkIO.observe(rebuildWalkSection);
-
-  const tbcSection = document.getElementById('tbc-section');
-  const tbcImageWrap = document.getElementById('tbc-image-wrap');
-  const tbcIO = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        setTimeout(() => tbcImageWrap.classList.add('in'), 400);
-      }
-    });
-  }, { threshold: 0.4 });
-  tbcIO.observe(tbcSection);
+  dummyFinIO.observe(dummyFin);
 </script>
 </body>
 </html>
